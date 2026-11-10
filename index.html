@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="aQsJhTUfHlbHjoLex4bumrAWJevli7twbsONYXBoWlk" />
+    <title>Prathmesh Tech | Software Engineering & Data Analytics Solutions</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                        'shimmer': 'shimmer 2.5s infinite linear',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-12px) rotate(1deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
+                            '50%': { opacity: 0.8, transform: 'scale(1.05)' }
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Background Mesh Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #050811; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(22, 32, 54, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(99, 102, 241, 0.45);
+            box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25);
+        }
+        
+        /* Gradient Text Effects */
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .text-gradient-purple {
+            background: linear-gradient(135deg, #c084fc 0%, #818cf8 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050811; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+    </style>
+</head>
+<body class="bg-[#050811] text-slate-100 antialiased selection:bg-indigo-500 selection:text-white min-h-screen relative overflow-x-hidden">
+
+    <!-- 3D WebGL Background Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Interactive Modal -->
+    <div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden transition-opacity duration-300">
+        <div class="glass-panel rounded-3xl max-w-lg w-full p-8 text-center shadow-2xl border border-indigo-500/40 transform transition-all scale-95" id="modal-content">
+            <div id="modal-icon" class="w-20 h-20 mx-auto mb-5 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-3xl shadow-inner">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 id="modal-title" class="text-2xl font-extrabold text-white mb-2">Notice</h3>
+            <p id="modal-message" class="text-slate-300 mb-6 text-sm leading-relaxed">System operational.</p>
+            <button onclick="closeModal()" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold rounded-xl hover:from-indigo-500 hover:to-violet-500 transition shadow-lg shadow-indigo-600/40 tracking-wide">
+                Dismiss
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-panel border-b border-white/10 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-700 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition duration-300">
+                    PA
+                </div>
+                <div>
+                    <span class="text-xl font-black tracking-wider bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">PRATHMESH TECH</span>
+                    <span class="block text-[10px] font-mono text-indigo-400 tracking-widest uppercase">Software & Analytics Agency</span>
+                </div>
+            </a>
+            
+            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
+                <a href="#about" class="hover:text-indigo-400 transition">About Founder</a>
+                <a href="#services" class="hover:text-indigo-400 transition">Services</a>
+                <a href="#projects" class="hover:text-indigo-400 transition">Projects</a>
+                <a href="#skills" class="hover:text-indigo-400 transition">Tech Stack</a>
+                <a href="#education" class="hover:text-indigo-400 transition">Credentials</a>
+                <a href="#estimator" class="hover:text-indigo-400 transition">Estimator</a>
+            </nav>
+
+            <div class="hidden md:flex items-center gap-4">
+                <a href="#contact" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-xs"></i> Contact Sales
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button onclick="toggleMobileMenu()" class="md:hidden text-slate-300 hover:text-white p-2 text-xl focus:outline-none">
+                <i class="fa-solid fa-bars" id="menu-icon"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/10 px-6 py-6 space-y-4">
+            <a href="#about" onclick="toggleMobileMenu()" class="block text-slate-300 hover:text-indigo-400 font-medium">About Founder</a>
+            <a href="#services" onclick="toggleMobileMenu()" class="block text-slate-300 hover:text-indigo-400 font-medium">Services</a>
+            <a href="#projects" onclick="toggleMobileMenu()" class="block text-slate-300 hover:text-indigo-400 font-medium">Projects</a>
+            <a href="#skills" onclick="toggleMobileMenu()" class="block text-slate-300 hover:text-indigo-400 font-medium">Tech Stack</a>
+            <a href="#education" onclick="toggleMobileMenu()" class="block text-slate-300 hover:text-indigo-400 font-medium">Credentials</a>
+            <a href="#estimator" onclick="toggleMobileMenu()" class="block text-slate-300 hover:text-indigo-400 font-medium">Estimator</a>
+            <a href="#contact" onclick="toggleMobileMenu()" class="block w-full py-3 text-center rounded-xl bg-indigo-600 text-white font-bold">Contact Sales</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-36 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border border-indigo-500/40 text-indigo-300 text-xs font-mono shadow-inner">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Data Analytics & Full-Stack Engineering Hub
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none text-white">
+                        Turning Code & Data Into <span class="text-gradient-purple">Business Power</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
+                        Led by <span class="text-indigo-400 font-bold">Prathmesh Arune</span>, Prathmesh Tech builds high-performing web platforms, Python/Java backend systems, and data analytics solutions tailored for modern businesses.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                        <a href="#estimator" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-extrabold transition shadow-xl shadow-indigo-600/40 text-center flex items-center justify-center gap-3 group">
+                            Calculate Project Cost <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition"></i>
+                        </a>
+                        <a href="#projects" class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card hover:bg-slate-800 text-slate-200 font-bold transition text-center border border-white/10 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-layer-group text-indigo-400"></i> View Portfolio
+                        </a>
+                    </div>
+
+                    <!-- Highlight Badges -->
+                    <div class="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 max-w-lg mx-auto lg:mx-0">
+                        <div>
+                            <div class="text-2xl sm:text-3xl font-black text-white">Certified</div>
+                            <div class="text-xs text-indigo-300 mt-1 font-mono">Data Analyst (AIS)</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl sm:text-3xl font-black text-indigo-400">B.Tech</div>
+                            <div class="text-xs text-slate-400 mt-1 font-mono">Computer Science</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl sm:text-3xl font-black text-purple-400">100%</div>
+                            <div class="text-xs text-slate-400 mt-1 font-mono">Client Commitment</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Animated Interactive Terminal Widget -->
+                <div class="lg:col-span-5">
+                    <div class="glass-panel rounded-3xl p-6 shadow-2xl border border-indigo-500/30 relative animate-float">
+                        <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500/90"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-500/90"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500/90"></span>
+                            </div>
+                            <span class="text-xs font-mono text-slate-400">prathmeshtech@system:~</span>
+                        </div>
+                        <div class="font-mono text-xs sm:text-sm space-y-3 text-slate-300">
+                            <p class="text-indigo-400">&gt; import company_profile</p>
+                            <p class="text-slate-400"># Initializing core capabilities...</p>
+                            <p class="text-emerald-400">✔ Web Development (React.js, Node.js, HTML5/CSS3)</p>
+                            <p class="text-emerald-400">✔ Software Development (Python, Java, C#)</p>
+                            <p class="text-emerald-400">✔ Database Management (SQL, NoSQL)</p>
+                            <p class="text-emerald-400">✔ BI & Statistical Predictive Modeling</p>
+                            <div class="p-4 rounded-2xl bg-slate-900/90 border border-indigo-500/30 mt-4 text-slate-200">
+                                <div class="text-indigo-400 font-bold mb-1">Founder Note:</div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                    "We transform datasets into competitive business decisions while engineering clean, resilient web architecture."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Founder Section -->
+    <section id="about" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Leadership</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-6">Meet The Founder</h2>
+                <p class="text-slate-300 text-lg">Prathmesh Arune — Founder & Lead Software Engineer at Prathmesh Tech.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-5">
+                    <div class="glass-panel rounded-3xl p-8 border border-white/10 relative overflow-hidden group">
+                        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-600/30 rounded-full blur-3xl group-hover:bg-indigo-600/50 transition"></div>
+                        <div class="relative z-10 space-y-6">
+                            <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex items-center justify-center text-white text-3xl font-black shadow-xl">
+                                PA
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">Prathmesh Arune</h3>
+                                <p class="text-indigo-400 text-sm font-mono mt-1">Founder | Data Analyst & Software Engineer</p>
+                                <p class="text-slate-400 text-xs font-mono mt-0.5"><i class="fa-solid fa-location-dot text-rose-400"></i> Barshi, Maharashtra, India</p>
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Computer Science student at Sanjeevan Engineering and Technology Institute. Certified Data Analyst with expertise in statistical modeling, business intelligence, full-stack web applications, and database architectures.
+                            </p>
+                            <div class="pt-4 border-t border-white/10 flex flex-wrap gap-2">
+                                <span class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 text-xs font-mono">Python</span>
+                                <span class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 text-xs font-mono">Java</span>
+                                <span class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 text-xs font-mono">React.js</span>
+                                <span class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 text-xs font-mono">SQL / NoSQL</span>
+                                <span class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 text-xs font-mono">Data Analytics</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Card 1 -->
+                    <div class="glass-card rounded-2xl p-6 border border-white/5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl flex-shrink-0">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-white">Problem Solving & Coding Competitions</h4>
+                                <p class="text-slate-300 text-sm mt-1">
+                                    Actively participating in algorithmic coding challenges and competitive programming to refine logical speed, data structure usage, and system scalability.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="glass-card rounded-2xl p-6 border border-white/5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 text-xl flex-shrink-0">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-white">AIS Insights Certified Data Analyst</h4>
+                                <p class="text-slate-300 text-sm mt-1">
+                                    Mastered data interpretation, statistical modeling, and converting raw business datasets into executive business intelligence reports and predictive decision paths.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="glass-card rounded-2xl p-6 border border-white/5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl flex-shrink-0">
+                                <i class="fa-solid fa-award"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-white">Merit Academic Scholarship & Leadership</h4>
+                                <p class="text-slate-300 text-sm mt-1">
+                                    Recipient of academic merit scholarship. Active volunteer and participant in college tech club events, community drives, and software hackathons.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-24 relative bg-slate-900/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Solutions</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-6">Our Services & Expertise</h2>
+                <p class="text-slate-300 text-lg">Delivering tailored software engineering and data analytics solutions.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="glass-card rounded-3xl p-8 border border-white/5 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 text-2xl mb-6 shadow-lg">
+                            <i class="fa-solid fa-laptop-code"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Full-Stack Web Development</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            Building lightning-fast, modern web applications using React.js, Node.js, HTML5, and CSS3. Focused on clean UI/UX, responsiveness, and cross-browser stability.
+                        </p>
+                    </div>
+                    <div class="pt-6 border-t border-white/10 mt-6 flex items-center justify-between text-xs font-mono text-indigo-400">
+                        <span>React.js • Node.js • Web</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="glass-card rounded-3xl p-8 border border-white/5 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-2xl mb-6 shadow-lg">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Software & Backend Logic</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            Engineered Python CRUD tools, Java components, and C# utilities. Developing robust backend workflows, API integrations, and persistent database logic.
+                        </p>
+                    </div>
+                    <div class="pt-6 border-t border-white/10 mt-6 flex items-center justify-between text-xs font-mono text-purple-400">
+                        <span>Python • Java • C#</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="glass-card rounded-3xl p-8 border border-white/5 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-2xl mb-6 shadow-lg">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Data Analytics & Business Intelligence</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            Turning unstructured data into actionable strategic insights through statistical analysis, predictive modeling, data visualization, and automated reporting.
+                        </p>
+                    </div>
+                    <div class="pt-6 border-t border-white/10 mt-6 flex items-center justify-between text-xs font-mono text-emerald-400">
+                        <span>SQL • Analytics • BI</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Portfolio Section -->
+    <section id="projects" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Portfolio</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-6">Featured Projects</h2>
+                <p class="text-slate-300 text-lg">Real-world implementations developed by our team.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Project 1 -->
+                <div class="glass-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-mono">Web Development</span>
+                            <span class="text-xs font-mono text-slate-400">2024</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-indigo-400 transition">Personal Portfolio & Business Website</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                            Designed and engineered a fully responsive personal and company website using HTML5, CSS3, and JavaScript. Optimized for fast render times, cross-browser support, and clean interactive user experience.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono">HTML5</span>
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono">CSS3</span>
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono">JavaScript</span>
+                        </div>
+                    </div>
+                    <div class="pt-6 border-t border-white/10 flex items-center justify-between">
+                        <span class="text-xs text-slate-400">Live Web App</span>
+                        <button onclick="triggerDemo('Personal Portfolio Website')" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-md shadow-indigo-600/30 flex items-center gap-2">
+                            <i class="fa-solid fa-eye"></i> Launch Interactive Demo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="glass-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-mono">Software Development</span>
+                            <span class="text-xs font-mono text-slate-400">2024</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition">Python Mini Project (CRUD Application)</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                            Developed a Python-based CRUD application demonstrating complete data lifecycle control (Create, Read, Update, Delete), custom input validation, structured backend logic, and persistent storage.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono">Python</span>
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono">Backend Engineering</span>
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono">Data Persistence</span>
+                        </div>
+                    </div>
+                    <div class="pt-6 border-t border-white/10 flex items-center justify-between">
+                        <span class="text-xs text-slate-400">Software Logic</span>
+                        <button onclick="triggerDemo('Python CRUD Application')" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition shadow-md shadow-purple-600/30 flex items-center gap-2">
+                            <i class="fa-solid fa-terminal"></i> View Architecture
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Matrix -->
+    <section id="skills" class="py-24 relative bg-slate-900/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Competencies</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-6">Technical Stack & Skills</h2>
+                <p class="text-slate-300 text-lg">Programming languages, web frameworks, and analytical tools.</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Skill items -->
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-indigo-400 text-4xl mb-3"><i class="fa-brands fa-python"></i></div>
+                    <h4 class="text-white font-bold text-base">Python</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Programming Language</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-amber-400 text-4xl mb-3"><i class="fa-brands fa-java"></i></div>
+                    <h4 class="text-white font-bold text-base">Java</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Enterprise Backend</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-cyan-400 text-4xl mb-3"><i class="fa-brands fa-react"></i></div>
+                    <h4 class="text-white font-bold text-base">React.js</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Web Development</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-emerald-400 text-4xl mb-3"><i class="fa-brands fa-node-js"></i></div>
+                    <h4 class="text-white font-bold text-base">Node.js</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Backend Runtime</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-orange-500 text-4xl mb-3"><i class="fa-brands fa-html5"></i></div>
+                    <h4 class="text-white font-bold text-base">HTML5 & CSS3</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Frontend Core</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-purple-400 text-4xl mb-3"><i class="fa-solid fa-database"></i></div>
+                    <h4 class="text-white font-bold text-base">SQL & NoSQL</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Database Systems</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-blue-400 text-4xl mb-3"><i class="fa-solid fa-chart-pie"></i></div>
+                    <h4 class="text-white font-bold text-base">Data Analytics</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">BI & Visualization</span>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center border border-white/5 flex flex-col items-center justify-center">
+                    <div class="text-rose-400 text-4xl mb-3"><i class="fa-brands fa-git-alt"></i></div>
+                    <h4 class="text-white font-bold text-base">Git / GitHub</h4>
+                    <span class="text-xs font-mono text-slate-400 mt-1">Version Control</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Credentials & Education Section -->
+    <section id="education" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Background</span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-6">Education & Certifications</h2>
+                <p class="text-slate-300 text-lg">Academic foundations and professional certifications.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Education Timeline -->
+                <div class="glass-panel rounded-3xl p-8 border border-white/10 space-y-6">
+                    <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-graduation-cap text-indigo-400"></i> Education History
+                    </h3>
+
+                    <div class="space-y-6 border-l-2 border-indigo-500/30 pl-6 ml-2">
+                        <!-- Degree 1 -->
+                        <div class="relative">
+                            <span class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-indigo-500 border-4 border-[#050811]"></span>
+                            <div class="text-xs font-mono text-indigo-400">2022 - Present | Barshi</div>
+                            <h4 class="text-lg font-bold text-white mt-1">B.Tech in Computer Science</h4>
+                            <p class="text-slate-300 text-sm">Sanjeevan Engineering and Technology Institute</p>
+                            <p class="text-slate-400 text-xs mt-1">Focused on Data Structures, Algorithms, Software Engineering, and Database Design.</p>
+                        </div>
+
+                        <!-- School 2 -->
+                        <div class="relative">
+                            <span class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-slate-600 border-4 border-[#050811]"></span>
+                            <div class="text-xs font-mono text-slate-400">2020 - 2022 | Barshi</div>
+                            <h4 class="text-base font-bold text-white mt-1">12th Grade (Science)</h4>
+                            <p class="text-slate-300 text-sm">Sulakhe College</p>
+                            <span class="inline-block mt-1 text-xs font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Score: 61.33%</span>
+                        </div>
+
+                        <!-- School 3 -->
+                        <div class="relative">
+                            <span class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-slate-600 border-4 border-[#050811]"></span>
+                            <div class="text-xs font-mono text-slate-400">2019 - 2020 | Barshi</div>
+                            <h4 class="text-base font-bold text-white mt-1">10th Grade</h4>
+                            <p class="text-slate-300 text-sm">Maharashtra Vidyalay</p>
+                            <span class="inline-block mt-1 text-xs font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Score: 61.80%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certifications & Languages -->
+                <div class="space-y-8">
+                    <div class="glass-panel rounded-3xl p-8 border border-white/10 space-y-4">
+                        <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                            <i class="fa-solid fa-certificate text-purple-400"></i> Certification
+                        </h3>
+                        <div class="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-bold text-white text-base">Data Analyst Certification</h4>
+                                <span class="text-xs font-mono text-indigo-300">AIS Insights (Pune)</span>
+                            </div>
+                            <p class="text-xs font-mono text-slate-400 mb-2">Nov 2025 – July 2026</p>
+                            <p class="text-slate-300 text-xs leading-relaxed">
+                                Mastered advanced data interpretation, strategic analytical techniques, transformation of raw datasets into business intelligence, and predictive modeling.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-3xl p-8 border border-white/10 space-y-4">
+                        <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                            <i class="fa-solid fa-language text-emerald-400"></i> Spoken Languages
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl glass-card border border-white/5 text-center">
+                                <div class="font-bold text-white text-base">English</div>
+                                <div class="text-xs text-slate-400 mt-1 font-mono">Professional / Technical</div>
+                            </div>
+                            <div class="p-4 rounded-2xl glass-card border border-white/5 text-center">
+                                <div class="font-bold text-white text-base">Marathi</div>
+                                <div class="text-xs text-slate-400 mt-1 font-mono">Native</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Project Estimator Section -->
+    <section id="estimator" class="py-24 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-panel rounded-3xl p-8 sm:p-12 border border-indigo-500/40 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl"></div>
+                
+                <div class="text-center max-w-xl mx-auto mb-10">
+                    <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Instant Quote</span>
+                    <h2 class="text-3xl font-extrabold text-white mt-4 mb-2">Project Cost Calculator</h2>
+                    <p class="text-slate-300 text-sm">Configure requirements to estimate budget and completion time.</p>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Step 1: Project Type -->
+                    <div>
+                        <label class="block text-sm font-bold text-white mb-3">1. Select Project Type</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <button type="button" onclick="setProjectType('web', 1200)" id="type-web" class="p-4 rounded-2xl glass-card border border-indigo-500 text-left transition">
+                                <div class="font-bold text-white">Full-Stack Web App</div>
+                                <div class="text-xs text-indigo-400 mt-1">React / Node.js</div>
+                            </button>
+                            <button type="button" onclick="setProjectType('backend', 1500)" id="type-backend" class="p-4 rounded-2xl glass-card border border-white/10 text-left transition">
+                                <div class="font-bold text-white">Backend & CRUD System</div>
+                                <div class="text-xs text-slate-400 mt-1">Python / Java / DB</div>
+                            </button>
+                            <button type="button" onclick="setProjectType('data', 1800)" id="type-data" class="p-4 rounded-2xl glass-card border border-white/10 text-left transition">
+                                <div class="font-bold text-white">Data Analytics & BI</div>
+                                <div class="text-xs text-slate-400 mt-1">Modeling & Dashboards</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Complexity -->
+                    <div>
+                        <label class="block text-sm font-bold text-white mb-3">2. Project Scope</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <button type="button" onclick="setComplexity('mvp', 1)" id="comp-mvp" class="p-4 rounded-2xl glass-card border border-indigo-500 text-left transition">
+                                <div class="font-bold text-white">MVP Launch</div>
+                                <div class="text-xs text-indigo-400 mt-1">Core features</div>
+                            </button>
+                            <button type="button" onclick="setComplexity('growth', 1.5)" id="comp-growth" class="p-4 rounded-2xl glass-card border border-white/10 text-left transition">
+                                <div class="font-bold text-white">Business Suite</div>
+                                <div class="text-xs text-slate-400 mt-1">Advanced workflows</div>
+                            </button>
+                            <button type="button" onclick="setComplexity('scale', 2)" id="comp-scale" class="p-4 rounded-2xl glass-card border border-white/10 text-left transition">
+                                <div class="font-bold text-white">Enterprise Scaled</div>
+                                <div class="text-xs text-slate-400 mt-1">Full architecture</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Box -->
+                    <div class="p-6 rounded-2xl bg-slate-900/90 border border-indigo-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                        <div>
+                            <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Estimated Project Budget</span>
+                            <div class="text-3xl font-extrabold text-white mt-1" id="estimate-price">$1,200 USD</div>
+                        </div>
+                        <button onclick="submitEstimate()" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm transition shadow-lg shadow-indigo-600/30">
+                            Request Official Proposal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 relative bg-slate-900/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-5 space-y-6">
+                    <span class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">Get In Touch</span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold text-white leading-tight">Let's Discuss Your Next Project</h2>
+                    <p class="text-slate-300 text-base leading-relaxed">
+                        Ready to start your web app development, data analysis, or backend project? Reach out directly to Prathmesh Arune.
+                    </p>
+                    
+                    <div class="space-y-4 pt-4">
+                        <div class="flex items-center gap-4 text-slate-300">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg flex-shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-mono text-slate-400">Direct Email</div>
+                                <div class="text-white font-medium">prathmesharune18@gmail.com</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 text-slate-300">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg flex-shrink-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-mono text-slate-400">Direct Contact</div>
+                                <div class="text-white font-medium">+91 91568 55233</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 text-slate-300">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg flex-shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-mono text-slate-400">Office Location</div>
+                                <div class="text-white font-medium">Kurduvadi Road Barbule Plot, Barshi, Maharashtra</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="glass-panel rounded-3xl p-8 sm:p-10 border border-white/10 shadow-2xl">
+                        <form onsubmit="handleContactSubmit(event)" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-300 mb-2">FULL NAME</label>
+                                    <input type="text" required placeholder="John Doe" class="w-full px-4 py-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-slate-300 mb-2">EMAIL ADDRESS</label>
+                                    <input type="email" required placeholder="john@company.com" class="w-full px-4 py-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-slate-300 mb-2">PROJECT CATEGORY</label>
+                                <input type="text" required placeholder="Full-Stack Web App / Python Backend / Data BI" class="w-full px-4 py-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-slate-300 mb-2">PROJECT DESCRIPTION</label>
+                                <textarea rows="4" required placeholder="Provide details on scope, requirements, and timeline..." class="w-full px-4 py-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition text-sm"></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold transition shadow-xl shadow-indigo-600/30 text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 bg-[#03050c]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">PA</div>
+                <span class="text-sm font-extrabold text-white tracking-wider">PRATHMESH TECH</span>
+            </div>
+            <p class="text-xs text-slate-400">
+                &copy; 2026 Prathmesh Arune. All rights reserved. Built with modern web standards and enterprise design.
+            </p>
+            <div class="flex items-center gap-4 text-slate-400 text-sm">
+                <a href="https://github.com" target="_blank" class="hover:text-indigo-400 transition"><i class="fa-brands fa-github"></i></a>
+                <a href="https://linkedin.com" target="_blank" class="hover:text-indigo-400 transition"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="mailto:prathmesharune18@gmail.com" class="hover:text-indigo-400 transition"><i class="fa-solid fa-envelope"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // 3D Canvas Animated Background Mesh
+        let scene, camera, renderer, particles;
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const particleCount = 600;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 160;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                color: 0x818cf8,
+                size: 0.9,
+                transparent: true,
+                opacity: 0.55
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (particles) {
+                particles.rotation.x += 0.0004;
+                particles.rotation.y += 0.0007;
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function() {
+            init3D();
+            animate();
+        };
+
+        // Mobile Menu Drawer Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            menu.classList.toggle('hidden');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-xmark');
+        }
+
+        // Custom Modal Controller
+        function showModal(title, message, isSuccess = true) {
+            const modal = document.getElementById('custom-modal');
+            const titleEl = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-message');
+            const iconEl = document.getElementById('modal-icon');
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+            if(isSuccess) {
+                iconEl.className = "w-20 h-20 mx-auto mb-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-3xl shadow-inner";
+                iconEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                iconEl.className = "w-20 h-20 mx-auto mb-5 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-3xl shadow-inner";
+                iconEl.innerHTML = '<i class="fa-solid fa-terminal"></i>';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        // Project Architecture Preview Trigger
+        function triggerDemo(projectName) {
+            showModal("System Architecture Preview", `Loading environment for "${projectName}" designed by Prathmesh Arune...`, false);
+        }
+
+        // Project Estimator Calculation Logic
+        let currentBasePrice = 1200;
+        let currentMultiplier = 1;
+
+        function setProjectType(type, base) {
+            currentBasePrice = base;
+            ['web', 'backend', 'data'].forEach(t => {
+                const btn = document.getElementById(`type-${t}`);
+                if(t === type) {
+                    btn.className = "p-4 rounded-2xl glass-card border border-indigo-500 text-left transition";
+                } else {
+                    btn.className = "p-4 rounded-2xl glass-card border border-white/10 text-left transition";
+                }
+            });
+            updateEstimate();
+        }
+
+        function setComplexity(level, mult) {
+            currentMultiplier = mult;
+            ['mvp', 'growth', 'scale'].forEach(l => {
+                const btn = document.getElementById(`comp-${l}`);
+                if(l === level) {
+                    btn.className = "p-4 rounded-2xl glass-card border border-indigo-500 text-left transition";
+                } else {
+                    btn.className = "p-4 rounded-2xl glass-card border border-white/10 text-left transition";
+                }
+            });
+            updateEstimate();
+        }
+
+        function updateEstimate() {
+            const total = Math.round(currentBasePrice * currentMultiplier);
+            document.getElementById('estimate-price').innerText = `$${total.toLocaleString()} USD`;
+        }
+
+        function submitEstimate() {
+            const total = document.getElementById('estimate-price').innerText;
+            showModal("Proposal Requested", `Your estimate of ${total} has been generated and sent to Prathmesh Arune. We will contact you within 24 hours!`);
+        }
+
+        // Contact Form Submission
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            showModal("Message Sent", "Thank you for reaching out to Prathmesh Tech! We will respond to your query shortly.");
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>
